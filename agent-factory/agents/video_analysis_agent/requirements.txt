@@ -1,0 +1,42 @@
+# Core Agent Framework
+pydantic-ai==0.0.14
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# Environment & Configuration
+python-dotenv==1.0.1
+
+# Google Gemini
+google-generativeai==0.8.3
+
+# OpenAI (for Whisper API and LLM)
+openai==1.57.2
+
+# Local Whisper (optional - install separately if using local model)
+# openai-whisper==20231117
+
+# CLIP for semantic chunking (optional)
+# transformers==4.46.3
+# torch==2.5.1
+# pillow==11.0.0
+
+# CLI & UI
+rich==13.9.4
+
+# Video processing
+# ffmpeg-python==0.2.0  # Alternative Python wrapper
+# Note: ffmpeg binary must be installed separately
+
+# Data processing
+numpy==2.2.0
+
+# Async support
+asyncio==3.4.3
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+
+# Optional: Database support (for future extensions)
+# asyncpg==0.30.0

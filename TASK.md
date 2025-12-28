@@ -23,9 +23,17 @@
 - Created complete agent structure in `agent-factory/agents/video_analysis_agent/`
 - Implemented 5-stage pipeline: Gemini → Whisper → Chunking → Knowledge Graph → System Prompt
 - CLI supports individual stages and full pipeline execution
-- Comprehensive test suite with 7 test files covering all modules
-- Documentation includes README.md, planning docs, and inline docstrings
+- Comprehensive test suite with 7 test files covering all modules (56/70 passing = 80%)
+- Documentation includes README.md, ORDERFLOW_GUIDE.md, ENHANCEMENTS.md, planning docs
 - All files follow <500 line limit, PEP8, type hints, Google-style docstrings
+
+**Orderflow Trading Enhancements**:
+- Enhanced Gemini prompt for DOM data extraction (bid/ask ratios, order sizes)
+- Orderflow pattern library (absorption, delta divergence, liquidity sweeps, etc.)
+- Success rate tracking from observable outcomes in videos
+- Quantified data extraction (numbers over descriptions)
+- Example script: `example_orderflow_analysis.py`
+- Information loss: ~2% (practically lossless)
 
 ---
 

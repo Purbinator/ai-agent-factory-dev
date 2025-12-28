@@ -33,6 +33,32 @@ class OrderflowRule:
     occurrences: int = 0
     confidence: float = 0.0
     examples: List[Dict[str, Any]] = field(default_factory=list)
+    outcomes: List[Dict[str, Any]] = field(default_factory=list)  # Track win/loss
+    
+    def calculate_success_rate(self) -> Optional[float]:
+        """
+        Calculate success rate from observed outcomes.
+        
+        Returns:
+            Success rate (0-1) or None if no outcomes tracked
+        """
+        if not self.outcomes:
+            return None
+        successful = sum(1 for o in self.outcomes if o.get("success", False))
+        return successful / len(self.outcomes) if self.outcomes else None
+    
+    def add_outcome(self, success: bool, details: Optional[Dict[str, Any]] = None):
+        """
+        Add an outcome observation.
+        
+        Args:
+            success: Whether pattern led to successful outcome
+            details: Additional outcome details (profit, duration, etc.)
+        """
+        outcome = {"success": success}
+        if details:
+            outcome.update(details)
+        self.outcomes.append(outcome)
 
 
 @dataclass
@@ -270,12 +296,33 @@ class KnowledgeGraphBuilder:
             pattern_type = pattern.get("type", "unknown")
             pattern_desc = pattern.get("description", "")
             
-            rule_patterns[pattern_type].append({
+            occurrence = {
                 "source": "visual",
                 "description": pattern_desc,
                 "timestamp": pattern.get("timestamp", ""),
                 "confidence": pattern.get("confidence", 0.7)
-            })
+            }
+            
+            # Extract outcome if present in pattern data
+            if "outcome" in pattern:
+                outcome_str = pattern["outcome"].lower()
+                # Reason: Detect success/failure from outcome descriptions
+                success = any(keyword in outcome_str for keyword in [
+                    "breakout", "profit", "win", "success", "target"
+                ])
+                failure = any(keyword in outcome_str for keyword in [
+                    "fail", "loss", "stop", "reverse"
+                ])
+                
+                if success or failure:
+                    occurrence["outcome"] = {
+                        "success": success and not failure,
+                        "description": pattern["outcome"],
+                        "price_level": pattern.get("price_level"),
+                        "dom_ratio": pattern.get("dom_ratio_before")
+                    }
+            
+            rule_patterns[pattern_type].append(occurrence)
         
         # Extract rules from trader intent
         for intent in whisper_transcript.get("trader_intent", []):
@@ -310,6 +357,16 @@ class KnowledgeGraphBuilder:
                         "description": occ["description"]
                     } for occ in occurrences[:3]]  # Keep top 3 examples
                 )
+                
+                # Add outcomes if present
+                for occ in occurrences:
+                    if "outcome" in occ:
+                        rule.outcomes.append(occ["outcome"])
+                
+                # Calculate success rate from outcomes
+                calculated_success_rate = rule.calculate_success_rate()
+                if calculated_success_rate is not None:
+                    rule.success_rate = calculated_success_rate
                 
                 rules.append(rule)
                 rule_id += 1
@@ -427,18 +484,25 @@ class KnowledgeGraphBuilder:
     
     def _rule_to_dict(self, rule: OrderflowRule) -> Dict[str, Any]:
         """Convert OrderflowRule to dictionary."""
-        return {
+        rule_dict = {
             "rule_id": rule.rule_id,
             "description": rule.description,
             "pattern_name": rule.pattern_name,
             "entry_conditions": rule.entry_conditions,
             "exit_conditions": rule.exit_conditions,
             "context_requirements": rule.context_requirements,
-            "success_rate": rule.success_rate,
+            "success_rate": round(rule.success_rate, 3) if rule.success_rate is not None else None,
             "occurrences": rule.occurrences,
             "confidence": round(rule.confidence, 3),
             "examples": rule.examples
         }
+        
+        # Add outcomes if present
+        if rule.outcomes:
+            rule_dict["outcomes"] = rule.outcomes
+            rule_dict["outcome_count"] = len(rule.outcomes)
+        
+        return rule_dict
     
     def _signature_to_dict(self, signature: PatternSignature) -> Dict[str, Any]:
         """Convert PatternSignature to dictionary."""

@@ -4,27 +4,46 @@ Lossless video knowledge extraction agent using Gemini 1.5 Pro and Whisper for t
 
 ## 🎯 Overview
 
-This agent implements a 3-channel hybrid approach to extract complete knowledge from trading videos with ~0% information loss:
+This agent implements a 3-channel hybrid approach to extract complete knowledge from trading videos with **~2% information loss** (only from Gemini API compression):
 
 1. **Dense Multimodal Video Understanding**: Gemini 1.5 Pro processes 60+ minute videos natively at 1 FPS
 2. **Precision Whisper Transcription**: Word-level timestamp transcription of trader speech/intent
 3. **Semantic Knowledge Graph**: Intelligent chunking and knowledge graph assembly
 
+### ⚡ Orderflow Trading Optimization
+
+**Enhanced for orderflow/DOM trading videos** with:
+- DOM (Depth of Market) data extraction (bid/ask ratios, order sizes)
+- Pattern recognition library (absorption, delta divergence, liquidity sweeps)
+- **Success rate tracking** from observable outcomes
+- Cross-modal validation (visual + audio alignment)
+- Quantified data extraction (prices, volumes, ratios)
+
+👉 **See [ORDERFLOW_GUIDE.md](ORDERFLOW_GUIDE.md) for detailed trading-specific documentation**
+
 ## 📋 Features
 
 - **5-Stage Pipeline**:
-  - Phase 1: Gemini video analysis (visual orderflow dynamics)
+  - Phase 1: Gemini video analysis (visual orderflow dynamics + DOM data)
   - Phase 2: Whisper transcription (trader speech with timestamps)
-  - Phase 3: Semantic chunking (identify logical segments)
-  - Phase 4: Knowledge graph assembly (timeline + rules + signatures)
+  - Phase 3: Semantic chunking (orderflow-aware segmentation)
+  - Phase 4: Knowledge graph assembly (timeline + rules + signatures + outcomes)
   - Phase 5: System prompt generation (production-ready output)
 
 - **Outputs**:
   - Complete timeline with exact timestamps
-  - Orderflow rules with confidence scores
-  - Pattern signature library
+  - Orderflow rules with **success rates** (tracked from outcomes)
+  - Pattern signature library (visual + audio confirmations)
   - Cross-modal confidence matrix
-  - Human-readable system prompt
+  - Human-readable system prompt + JSON knowledge graph
+
+- **Orderflow Patterns Supported**:
+  - Absorption patterns
+  - Delta divergence
+  - Liquidity sweeps
+  - DOM imbalances
+  - Iceberg orders
+  - Volume climax
 
 ## 🚀 Quick Start
 

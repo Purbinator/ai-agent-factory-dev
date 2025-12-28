@@ -25,34 +25,115 @@ MAIN_SYSTEM_PROMPT = """You are a specialized video analysis agent that orchestr
 - Quantify confidence scores for patterns"""
 
 
-# Gemini video processing prompt
-GEMINI_VIDEO_ANALYSIS_PROMPT = """Analyze this trading/orderflow video frame-by-frame.
+# Gemini video processing prompt - Enhanced for Orderflow Trading
+GEMINI_VIDEO_ANALYSIS_PROMPT = """Analyze this trading/orderflow video frame-by-frame with PRECISION.
 
-Extract the following information with precise timestamps:
+**CRITICAL: DOM (Depth of Market) Data Extraction**
+For EVERY significant scene, extract QUANTIFIED data:
+- Bid/Ask ratio (e.g., 0.45, 2.8) - calculate from visible order book
+- Large order sizes at specific price levels (e.g., "Seller at 4850: 200 contracts")
+- Order book imbalance direction (heavy bid/heavy ask)
+- Bid/ask spread in ticks
 
-1. **Visual Orderflow Patterns**:
-   - DOM (Depth of Market) imbalances
-   - Bid/ask spread changes
-   - Large order placements/cancellations
-   - Volume surges and side changes
-   - Price level breaks
+**Orderflow Pattern Recognition** (timestamp each occurrence):
+1. **Absorption Patterns**:
+   - Large order appears, absorbs aggressive hits, then disappears
+   - Note: order size, price level, duration before removal
+   
+2. **Delta Divergence**:
+   - Price makes new low/high but cumulative delta moves opposite
+   - Note: exact price levels and delta values if visible
+   
+3. **Liquidity Sweeps**:
+   - Price spikes through key level, immediately reverses
+   - Note: swept level, wick size, reversal speed
+   
+4. **DOM Imbalance Signals**:
+   - Ratio < 0.4 (heavy sellers) or > 2.5 (heavy buyers) for 3+ seconds
+   - Note: exact ratio, duration, outcome
 
-2. **Visual Markers**:
-   - Chart annotations
-   - Highlighted zones
-   - Cursor movements indicating emphasis
-   - Screen elements trader focuses on
+**Visual Markers**:
+- Chart annotations (circles, arrows, highlights)
+- Cursor movements indicating emphasis
+- Screen elements trader focuses on
+- Explicit price levels mentioned or shown
 
-3. **Temporal Sequences**:
-   - Pattern setup → execution → outcome
-   - Time between key events
-   - Repeated sequences
+**Temporal Sequences** (CRITICAL for pattern reliability):
+- Pattern setup → execution → outcome (win/loss if visible)
+- Time between setup and execution (in seconds)
+- Pattern frequency (how many times this exact sequence repeats)
 
-4. **Cross-Modal Alignment Points**:
-   - When visual patterns align with expected speech
-   - Moments requiring audio confirmation
+**Cross-Modal Alignment Points**:
+- When visual patterns MUST have audio confirmation
+- Moments where trader verbal emphasis validates visual signal
 
-Return structured JSON with exact timestamps for each observation."""
+**Output Format**: JSON with exact timestamps (HH:MM:SS) for EVERY observation:
+{
+  "patterns": [
+    {
+      "type": "absorption",
+      "timestamp": "00:12:34",
+      "price_level": 4850.5,
+      "order_size": 200,
+      "dom_ratio_before": 0.38,
+      "dom_ratio_after": 0.52,
+      "outcome": "breakout_up",
+      "confidence": 0.85
+    }
+  ],
+  "timeline": [...],
+  "visual_markers": [...],
+  "cross_modal_points": [...]
+}
+
+**Priority**: QUANTIFIED data > descriptions. Extract NUMBERS whenever visible."""
+
+
+# Orderflow Pattern Library - Domain-Specific Definitions
+ORDERFLOW_PATTERNS = {
+    "absorption": {
+        "description": "Large order appears, absorbs aggressive hits, then disappears",
+        "visual_signature": "Large bid/ask at key level, multiple prints, order removed",
+        "audio_confirmations": ["absorption", "taking liquidity", "soaking up"],
+        "setup_time": "5-30 seconds",
+        "confidence_threshold": 0.75
+    },
+    "delta_divergence": {
+        "description": "Price makes new low/high but cumulative delta moves opposite",
+        "visual_signature": "Price lower low + delta green/increasing OR price higher high + delta red/decreasing",
+        "audio_confirmations": ["divergence", "delta diverging", "buyers stepping in", "sellers stepping in"],
+        "setup_time": "30-120 seconds",
+        "confidence_threshold": 0.80
+    },
+    "liquidity_sweep": {
+        "description": "Price spikes through key level, immediately reverses",
+        "visual_signature": "Sharp wick through support/resistance, immediate rejection",
+        "audio_confirmations": ["sweep", "stop run", "liquidity grab", "taking stops"],
+        "setup_time": "2-10 seconds",
+        "confidence_threshold": 0.85
+    },
+    "dom_imbalance": {
+        "description": "Bid/ask ratio heavily skewed (< 0.4 or > 2.5) for sustained period",
+        "visual_signature": "Order book heavily one-sided, ratio visible",
+        "audio_confirmations": ["imbalance", "heavy bid", "heavy offer", "stacked"],
+        "setup_time": "3-60 seconds",
+        "confidence_threshold": 0.70
+    },
+    "iceberg_order": {
+        "description": "Large hidden order revealed through repeated replenishment",
+        "visual_signature": "Same size order reappears after being filled",
+        "audio_confirmations": ["iceberg", "hidden order", "reloading"],
+        "setup_time": "10-60 seconds",
+        "confidence_threshold": 0.75
+    },
+    "volume_climax": {
+        "description": "Extreme volume spike marking potential reversal",
+        "visual_signature": "Volume bar 3x+ average, price exhaustion",
+        "audio_confirmations": ["climax", "blow-off", "exhaustion", "capitulation"],
+        "setup_time": "5-30 seconds",
+        "confidence_threshold": 0.80
+    }
+}
 
 
 # Whisper transcription prompt (metadata)
